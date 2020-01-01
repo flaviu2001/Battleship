@@ -33,7 +33,7 @@ class UI:
             print("Unfortunately you lost.")
 
     def exit(self):
-        Save(self._game).save()
+        Save(game=self._game).save()
         print("You have quit the game, you may resume it later.")
         exit()
 
@@ -101,7 +101,7 @@ class UI:
 
     def start(self):
         loaded = False
-        if saved_game := Save(Settings().save_path()).load():
+        if saved_game := Save(game=self._game).load():
             choice = input("The program detected an unfinished game from last time, do you want to continue? y/N: ")
             while choice not in ("y", "N"):
                 if choice == "exit":

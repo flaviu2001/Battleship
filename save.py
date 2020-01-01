@@ -1,11 +1,9 @@
 import pickle
-from settings import Settings
+from constants import *
 
 
 class Save:
-    def __init__(self, save_path=None, game=None):
-        if save_path is None:
-            save_path = Settings().save_path()
+    def __init__(self, save_path=SAVEFILE_PATH, game=None):
         self.game = game
         self.save_path = save_path
 

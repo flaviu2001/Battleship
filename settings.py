@@ -6,7 +6,7 @@ from exceptions import *
 class Settings:
     def __init__(self):
         self._parser = ConfigParser()
-        self._parser.read("settings.ini")
+        self._parser.read(SETTINGS_PATH)
 
     def valid(self):
         self.ships()
@@ -21,6 +21,8 @@ class Settings:
         ba = int(self._parser.get("settings", "battleships"))
         cr = int(self._parser.get("settings", "cruisers"))
         de = int(self._parser.get("settings", "destroyers"))
+        if sum((ca, ba, cr, de)) == 0:
+            raise SettingsError("There should be at least a ship")
         for s in (ca, ba, cr, de):
             if s < 0:
                 raise SettingsError("No negative ships")

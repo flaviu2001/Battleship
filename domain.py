@@ -62,7 +62,7 @@ class Board:
         self.matrix = [[EMPTY for _ in range(self.width)] for __ in range(self.height)]
         self.remaining_cells = 0
         if ships is None:
-            ships = self._random_ships()
+            ships = self.random_ships()
         for ship in ships:
             for cell in ship:
                 if self[cell] != 0:
@@ -104,15 +104,18 @@ class Board:
             text_table.add_row(aux)
         return text_table.draw()
 
-    def _random_ships(self):
+    @staticmethod
+    def random_ships():
         """
         :return: A list of randomly placed ships as specified by the settings.ini file
         """
         ships = []
         occupied_cells = []
+        height = Settings().height()
+        width = Settings().width()
         for ship, frequency in Settings().ships().items():
             ship_len = DICT_LEN[ship]
-            if ship_len > min(self.height, self.width):
+            if ship_len > min(height, width):
                 raise BoardError("Board too small")
             while frequency > 0:
                 frequency -= 1
@@ -120,13 +123,13 @@ class Board:
                 while True:
                     cnt += 1
                     if randrange(2) == 0:
-                        starting_x = randrange(self.height)
-                        starting_y = randrange(self.width - ship_len + 1)
+                        starting_x = randrange(height)
+                        starting_y = randrange(width - ship_len + 1)
                         ending_x = starting_x
                         ending_y = starting_y + ship_len - 1
                     else:
-                        starting_x = randrange(self.height - ship_len + 1)
-                        starting_y = randrange(self.width)
+                        starting_x = randrange(height - ship_len + 1)
+                        starting_y = randrange(width)
                         ending_x = starting_x + ship_len - 1
                         ending_y = starting_y
                     good = True

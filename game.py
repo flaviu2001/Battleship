@@ -44,7 +44,7 @@ class Game:
                                                          pair[1]+1))
         Save(game=self).save()
         if self._board_ai.finished():
-            os.remove(Settings().save_path())
+            os.remove(SAVEFILE_PATH)
 
     def ai_move(self):
         """
@@ -61,7 +61,7 @@ class Game:
         self.turn = PLAYER
         Save(game=self).save()
         if self._board_player.finished():
-            os.remove(Settings().save_path())
+            os.remove(SAVEFILE_PATH)
 
     def reset_recent(self):
         self.recent.clear()

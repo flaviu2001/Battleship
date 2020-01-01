@@ -9,7 +9,9 @@ from settings import Settings
 
 
 class Photo:
-    def __init__(self, parent, path, relx, rely, relwidth, relheight, thing=tk.Label, antialias=False):
+    def __init__(self, parent, path, relx, rely, relwidth, relheight, thing=None, antialias=False):
+        if thing is None:
+            thing = tk.Label
         self.thing = thing(parent)
         self.thing.place(relx=relx, rely=rely, relwidth=relwidth, relheight=relheight)
         self.thing.update()
@@ -129,9 +131,9 @@ class PlayGame(tk.Frame):
         self.win.set_hidden()
         self.lose.set_hidden()
         self.computer = [[
-            TileAI(self, i, j,
-                   x_comp_begin + (x_comp_end - x_comp_begin) * (j / width),
-                   y_comp_begin + (y_comp_end - y_comp_begin) * (i / height),
+            TileAI(self, j, i,
+                   x_comp_begin + (x_comp_end - x_comp_begin) * (i / width),
+                   y_comp_begin + (y_comp_end - y_comp_begin) * (j / height),
                    (x_comp_end - x_comp_begin) * (1 / width),
                    (y_comp_end - y_comp_begin) * (1 / height))
             for i in range(width)] for j in range(height)]
@@ -141,9 +143,9 @@ class PlayGame(tk.Frame):
                 for j in range(len(self.computer[i])):
                     self.computer[i][j].update()
         self.player = [[
-            TilePlayer(self, i, j,
-                       x_player_begin + (x_player_end - x_player_begin) * (j / width),
-                       y_player_begin + (y_player_end - y_player_begin) * (i / height),
+            TilePlayer(self, j, i,
+                       x_player_begin + (x_player_end - x_player_begin) * (i / width),
+                       y_player_begin + (y_player_end - y_player_begin) * (j / height),
                        (x_player_end - x_player_begin) * (1 / width),
                        (y_player_end - y_player_begin) * (1 / height))
             for i in range(width)] for j in range(height)]
@@ -245,6 +247,138 @@ class SettingsPage(tk.Frame):
         self.controller.show_frame("MainMenu")
 
 
+class ShipPage(tk.Frame):
+    # noinspection PyShadowingNames
+    def __init__(self, parent, controller, gui):
+        tk.Frame.__init__(self, parent)
+        self.parent = parent
+        self.controller = controller
+        self.gui = gui
+        ships = Settings().ships()
+        self.remaining = []
+        for ship, frequency in ships.items():
+            if frequency > 0:
+                self.remaining.append([ship, frequency])
+        self.ships = []
+        x_begin = 0.2
+        x_end = 0.55
+        y_begin = 0.2
+        y_end = 0.9
+        color_bg = "#a2ddf5"
+        color_active = "#7acef0"
+        width = Settings().width()
+        height = Settings().height()
+        self.matrix = [[
+            Photo(self, EMPTY_SPRITE,
+                  x_begin + (x_end - x_begin) * (i / width),
+                  y_begin + (y_end - y_begin) * (j / height),
+                  (x_end - x_begin) * (1 / width),
+                  (y_end - y_begin) * (1 / height),
+                  thing=tk.Button)
+            for i in range(width)] for j in range(height)]
+        self.matrix2 = [[0 for _ in range(width)] for __ in range(height)]
+        self.choices = ["Orientation: Horizontal", "Orientation: Vertical"]
+        self.variable = tk.StringVar(self)
+        self.variable.set(self.choices[0])
+        option = tk.OptionMenu(self, self.variable, *self.choices, command=self.prepare)
+        option.configure(font=40, bg=color_bg, activebackground=color_active)
+        label = tk.Label(self, text="Choose where to place your ship\n"
+                                    "Orientation is left to right or up to bottom", font=40)
+        label.place(relx=0.6, rely=0.2, relheight=0.06, relwidth=0.3)
+        self.label_len = tk.Label(self, text="The length of the ship you have to place is: ", font=40)
+        self.label_len.place(relx=0.55, rely=0.3, relheight=0.06, relwidth=0.4)
+        option.place(relx=0.6, rely=0.4, relheight=0.07, relwidth=0.3)
+        option["menu"].configure(bg=color_bg, activebackground=color_active, font=40)
+        self.prepare()
+        for i in range(len(self.matrix)):
+            for j in range(len(self.matrix[i])):
+                pair = i, j
+                self.matrix[i][j].thing.configure(command=lambda pair=pair: self.advance(pair))
+        randomize_button = tk.Button(self, text="Randomize placements", font=40, command=self.delegate_ships,
+                                     bg=color_bg, activebackground=color_active)
+        randomize_button.place(relx=0.625, rely=0.57, relheight=0.08, relwidth=0.25)
+
+    def advance(self, pair):
+        if len(self.remaining) == 0:
+            return
+
+        def next_cell(pair2):
+            if self.variable.get() == self.choices[0]:
+                return pair2[0], pair2[1] + 1
+            return pair2[0] + 1, pair2[1]
+
+        start = pair
+        end = pair
+        for _ in range(DICT_LEN[self.remaining[-1][0]]):
+            self.matrix[pair[0]][pair[1]].change(SHIP_SPRITE)
+            self.matrix2[pair[0]][pair[1]] = 1
+            end = pair
+            pair = next_cell(pair)
+        self.ships.append(Ship(start, end))
+        self.remaining[-1][1] -= 1
+        if self.remaining[-1][1] == 0:
+            self.remaining.pop()
+        if len(self.remaining) == 0:
+            self.delegate_ships()
+        else:
+            self.prepare()
+
+    def prepare(self, value=None):
+        if value is None:
+            value = self.variable.get()
+        for i in range(len(self.matrix)):
+            for j in range(len(self.matrix[i])):
+                self.matrix[i][j].thing.configure(state="normal")
+        for i in range(len(self.matrix)):
+            for j in range(len(self.matrix[i])):
+                cell = (i, j)
+
+                def next_cell(pair):
+                    if value == self.choices[0]:
+                        return pair[0], pair[1] + 1
+                    return pair[0] + 1, pair[1]
+
+                def valid(pair):
+                    return pair[0] in range(len(self.matrix)) and pair[1] in range(len(self.matrix[0]))
+
+                good = True
+                for _ in range(DICT_LEN[self.remaining[-1][0]]):
+                    if not valid(cell) or self.matrix2[cell[0]][cell[1]] != 0:
+                        good = False
+                        break
+                    cell = next_cell(cell)
+                if not good:
+                    self.matrix[i][j].thing.configure(state="disabled")
+        self.label_len.configure(text="The length of the ship you have to place is: {0}".
+                                 format(DICT_LEN[self.remaining[-1][0]]))
+
+    def delegate_ships(self):
+        ai_string = Settings().ai()
+        if ai_string == "easy":
+            ai = EasyAI
+        elif ai_string == "normal":
+            ai = NormalAI
+        else:
+            ai = AdvancedAI
+        board_ai = Board()
+        if len(self.remaining) > 0:
+            self.ships = Board.random_ships()
+        board_player = Board(owner=PLAYER, ships=self.ships)
+        self.ships = []
+        first_string = Settings().first()
+        if first_string == "player":
+            first = PLAYER
+        elif first_string == "computer":
+            first = COMPUTER
+        else:
+            first = random.choice((PLAYER, COMPUTER))
+        self.gui.game = Game(ai, board_player, board_ai, first)
+        frame = PlayGame(parent=self.parent, controller=self.controller, gui=self.gui)
+        self.controller.frames["PlayGame"] = frame
+        frame.grid(row=0, column=0, sticky="nsew")
+        self.controller.show_frame("PlayGame")
+
+
 class MainMenu(tk.Frame):
     def __init__(self, parent, controller, gui):
         tk.Frame.__init__(self, parent)
@@ -278,34 +412,17 @@ class MainMenu(tk.Frame):
         self.controller.show_frame("PlayGame")
 
     def new_game(self):
-        ai_string = Settings().ai()
-        if ai_string == "easy":
-            ai = EasyAI
-        elif ai_string == "normal":
-            ai = NormalAI
-        else:
-            ai = AdvancedAI
-        board_ai = Board()
-        board_player = Board(owner=PLAYER)
-        first_string = Settings().first()
-        if first_string == "player":
-            first = PLAYER
-        elif first_string == "computer":
-            first = COMPUTER
-        else:
-            first = random.choice((PLAYER, COMPUTER))
-        self.gui.game = Game(ai, board_player, board_ai, first)
-        frame = PlayGame(parent=self.parent, controller=self.controller, gui=self.gui)
-        self.controller.frames["PlayGame"] = frame
+        frame = ShipPage(parent=self.parent, controller=self.controller, gui=self.gui)
+        self.controller.frames["ShipPage"] = frame
         frame.grid(row=0, column=0, sticky="nsew")
-        self.controller.show_frame("PlayGame")
+        self.controller.show_frame("ShipPage")
 
 
 class WindowMaster(tk.Tk):
     def __init__(self, gui):
         tk.Tk.__init__(self)
         self.gui = gui
-        self.geometry("900x600")
+        self.geometry("1100x600")
         self.title_font = tkfont.Font(family='Helvetica', size=18, weight="bold", slant="italic")
         self.title("Battleship")
         container = tk.Frame(self)
@@ -315,7 +432,7 @@ class WindowMaster(tk.Tk):
         self.frames = {}
         for F in (MainMenu, SettingsPage):
             page_name = F.__name__
-            if F in (MainMenu,):
+            if F is MainMenu:
                 frame = F(parent=container, controller=self, gui=gui)
             else:
                 frame = F(parent=container, controller=self)

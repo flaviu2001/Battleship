@@ -17,17 +17,13 @@ LOSER_SPRITE = "sprites/loser.png"
 PLAYER_SPRITE = "sprites/player.png"
 COMPUTER_SPRITE = "sprites/computer.png"
 
+SETTINGS_PATH = "settings.ini"
+SAVEFILE_PATH = "savefile.sav"
+
 BATTLESHIP = 20
 CRUISER = 21
 DESTROYER = 22
 CARRIER = 23
-
-RED = (255, 0, 0)
-ORANGE = (255, 127, 0)
-YELLOW = (255, 255, 0)
-WHITE = (255, 255, 255)
-GREY = (127, 127, 127)
-BLACK = (0, 0, 0)
 
 DICT_AI = {SUNK: 'u', EMPTY: '.', SHIP: '.', HIT: '!', MISS: 'x'}
 DICT_PLAYER = {SUNK: 'u', EMPTY: '.', SHIP: 'S', HIT: '!', MISS: 'x'}
