@@ -2,6 +2,7 @@ from os import system
 from domain import *
 from game import Game
 from save import Save
+from ai import *
 
 
 class UI:
@@ -17,16 +18,27 @@ class UI:
         system("clear")
         self._print_recent_moves()
         print("{0} cells left for the player".format(self._game.board_ai.remaining_cells))
-        print("{0} cells left fot the computer".format(self._game.board_player.remaining_cells))
+        print("{0} cells left for the computer".format(self._game.board_player.remaining_cells))
         print("PLAYER BOARD\n{0}\n\nCOMPUTER BOARD - You guess here\n{1}".format(self._game.board_player,
                                                                                  self._game.board_ai))
+
+    def _show_boards_finished(self):
+        system("clear")
+        print("PLAYER BOARD\n{0}\n\nCOMPUTER BOARD - You guess here\n{1}".format(self._game.board_player.unhidden(),
+                                                                                 self._game.board_ai.unhidden()))
+        self._print_recent_moves()
+        if self._game.board_ai.finished():
+            print("Congratulations, you won!")
+        if self._game.board_player.finished():
+            print("Unfortunately you lost.")
 
     def exit(self):
         Save(self._game).save()
         print("You have quit the game, you may resume it later.")
         exit()
 
-    def _player_ships(self):
+    @staticmethod
+    def _player_ships():
         print("Now you need to place your ships on the board.")
         print("Would you like to generate their positions randomly instead? y/N")
         while True:
@@ -52,7 +64,7 @@ class UI:
                                 try:
                                     if pos1 == "exit":
                                         raise BoardError("Cannot exit right now")
-                                    pair1 = self._game.board_player.string_to_pair(pos1)
+                                    pair1 = Board.string_to_pair(pos1)
                                     break
                                 except BoardError as be:
                                     print(be)
@@ -62,7 +74,7 @@ class UI:
                                 try:
                                     if pos2 == "exit":
                                         raise BoardError("Cannot exit right now")
-                                    pair2 = self._game.board_player.string_to_pair(pos2)
+                                    pair2 = Board.string_to_pair(pos2)
                                     break
                                 except BoardError as be:
                                     print(be)
@@ -89,7 +101,7 @@ class UI:
 
     def start(self):
         loaded = False
-        if saved_game := Save.load():
+        if saved_game := Save(Settings().save_path()).load():
             choice = input("The program detected an unfinished game from last time, do you want to continue? y/N: ")
             while choice not in ("y", "N"):
                 if choice == "exit":
@@ -99,20 +111,21 @@ class UI:
                 self._game = saved_game
                 loaded = True
         if not loaded:
-            ai = Settings().ai()
-            first = Settings().first()
+            ai = {"easy": EasyAI, "normal": NormalAI, "advanced": AdvancedAI}[Settings().ai()]
+            first = {"player": PLAYER,
+                     "computer": COMPUTER,
+                     "random": random.choice((PLAYER, COMPUTER))
+                     }[Settings().first()]
             board_ai = Board()
             self._starting_text()
             board_player = Board(owner=PLAYER, ships=self._player_ships())
             self._game = Game(ai, board_player, board_ai, first)
         while True:
             if self._game.board_ai.finished():
-                self._print_recent_moves()
-                print("Congratulations, you won!")
+                self._show_boards_finished()
                 break
             if self._game.board_player.finished():
-                self._print_recent_moves()
-                print("Unfortunately you lost.")
+                self._show_boards_finished()
                 break
             if self._game.turn == PLAYER:
                 self._show_boards()

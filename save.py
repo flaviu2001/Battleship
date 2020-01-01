@@ -1,16 +1,17 @@
-from settings import Settings
 import pickle
+from settings import Settings
 
 
 class Save:
-    def __init__(self, game):
+    def __init__(self, save_path=None, game=None):
+        if save_path is None:
+            save_path = Settings().save_path()
         self.game = game
-        self.save_path = Settings().save_path()
+        self.save_path = save_path
 
-    @staticmethod
-    def load():
+    def load(self):
         try:
-            file = open(Settings().save_path(), "rb")
+            file = open(self.save_path, "rb")
             ret = pickle.load(file)
             file.close()
             return ret

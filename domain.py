@@ -46,12 +46,16 @@ class Ship:
 
 
 class Board:
-    def __init__(self, owner=COMPUTER, ships=None, height=Settings().height(), width=Settings().width()):
+    def __init__(self, owner=COMPUTER, ships=None, height=None, width=None):
         """
         Class to store all the information of one player's matrix
         :param owner: can be COMPUTER or PLAYER
         :param ships: list of ships to begin the game with
         """
+        if height is None:
+            height = Settings().height()
+        if width is None:
+            width = Settings().width()
         self.height = height
         self.width = width
         self.owner = owner
@@ -78,17 +82,25 @@ class Board:
         self.matrix[item[0]][item[1]] = value
 
     def __str__(self):
+        if self.owner == PLAYER:
+            return self._table_str(DICT_PLAYER)
+        return self._table_str(DICT_AI)
+
+    def unhidden(self):
+        return self._table_str(DICT_UNHIDDEN)
+
+    def _table_str(self, dictionary):
         text_table = Texttable()
         aux = ["/"]
-        for x in range(1, self.width+1):
+        for x in range(1, self.width + 1):
             aux += [x]
         text_table.add_row(aux)
         for i in range(self.height):
-            aux = [chr(ord('A')+i)]
+            aux = [chr(ord('A') + i)]
             if self.owner == PLAYER:
-                aux += [DICT_PLAYER[x] for x in self.matrix[i]]
+                aux += [dictionary[x] for x in self.matrix[i]]
             else:
-                aux += [DICT_AI[x] for x in self.matrix[i]]
+                aux += [dictionary[x] for x in self.matrix[i]]
             text_table.add_row(aux)
         return text_table.draw()
 
@@ -175,12 +187,19 @@ class Board:
             self[pair] = MISS
             return False
 
-    def string_to_pair(self, pos):
-        """
+    @staticmethod
+    def string_to_pair(pos, height=None, width=None):
+        """self
         Converts a string of the form A1 or D4 or H8 to the pair of coordinates which it encodes
         :param pos: string
+        :param height: max height of board
+        :param width: max width of board
         :return: pair
         """
+        if height is None:
+            height = Settings().height()
+        if width is None:
+            width = Settings().width()
         if not (mat := re.match("([A-Z])([1-9][0-9]*)$", pos, re.IGNORECASE)):
             raise BoardError("Invalid move.")
         groups = mat.groups()
@@ -189,6 +208,6 @@ class Board:
         else:
             pair = [ord(groups[0]) - 97]
         pair.append(int(groups[1]) - 1)
-        if pair[0] not in range(self.height) or pair[1] not in range(self.width):
+        if pair[0] not in range(height) or pair[1] not in range(width):
             raise BoardError("Invalid move.")
         return pair

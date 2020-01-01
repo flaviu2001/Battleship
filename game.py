@@ -1,5 +1,6 @@
 from save import *
 from constants import *
+from settings import Settings
 import os
 
 
@@ -17,6 +18,7 @@ class Game:
         self._board_ai = board_ai
         self.turn = first
         self.recent = []
+        Save(game=self).save()
 
     @property
     def ai(self):
@@ -40,7 +42,7 @@ class Game:
         self.recent.append("Player {0} on {1}{2}".format("hit" if hit else "miss",
                                                          chr(ord('A')+pair[0]),
                                                          pair[1]+1))
-        Save(self).save()
+        Save(game=self).save()
         if self._board_ai.finished():
             os.remove(Settings().save_path())
 
@@ -57,7 +59,7 @@ class Game:
             if not hit or self._board_player.finished():
                 break
         self.turn = PLAYER
-        Save(self).save()
+        Save(game=self).save()
         if self._board_player.finished():
             os.remove(Settings().save_path())
 
