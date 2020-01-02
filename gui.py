@@ -297,6 +297,10 @@ class ShipPage(tk.Frame):
         randomize_button = tk.Button(self, text="Randomize placements", font=40, command=self.delegate_ships,
                                      bg=color_bg, activebackground=color_active)
         randomize_button.place(relx=0.625, rely=0.57, relheight=0.08, relwidth=0.25)
+        back_button = tk.Button(self, text="Back", font=40,
+                                command=lambda: self.controller.show_frame("MainMenu"),
+                                bg=color_bg, activebackground=color_active)
+        back_button.place(relx=0.03, rely=0.03, relheight=0.05, relwidth=0.1)
 
     def advance(self, pair):
         if len(self.remaining) == 0:
