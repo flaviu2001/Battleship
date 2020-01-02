@@ -170,6 +170,14 @@ class PlayGame(tk.Frame):
             self.controller.frames["MainMenu"].button2.configure(state="normal",
                                                                  command=lambda: self.controller.frames["MainMenu"].
                                                                  continue_game(game))
+        for i in range(self.gui.game.board_player.height):
+            for j in range(self.gui.game.board_player.width):
+                self.computer[i][j].photo.thing.place_forget()
+                self.computer[i][j].photo.thing.destroy()
+                self.player[i][j].photo.thing.place_forget()
+                self.player[i][j].photo.thing.destroy()
+        self.place_forget()
+        self.destroy()
         self.controller.show_frame("MainMenu")
 
 
@@ -280,27 +288,27 @@ class ShipPage(tk.Frame):
         self.choices = ["Orientation: Horizontal", "Orientation: Vertical"]
         self.variable = tk.StringVar(self)
         self.variable.set(self.choices[0])
-        option = tk.OptionMenu(self, self.variable, *self.choices, command=self.prepare)
-        option.configure(font=40, bg=color_bg, activebackground=color_active)
-        label = tk.Label(self, text="Choose where to place your ship\n"
-                                    "Orientation is left to right or up to bottom", font=40)
-        label.place(relx=0.6, rely=0.2, relheight=0.06, relwidth=0.3)
+        self.option = tk.OptionMenu(self, self.variable, *self.choices, command=self.prepare)
+        self.option.configure(font=40, bg=color_bg, activebackground=color_active)
+        self.label = tk.Label(self, text="Choose where to place your ship\n"
+                                         "Orientation is left to right or up to bottom", font=40)
+        self.label.place(relx=0.6, rely=0.2, relheight=0.06, relwidth=0.3)
         self.label_len = tk.Label(self, text="The length of the ship you have to place is: ", font=40)
         self.label_len.place(relx=0.55, rely=0.3, relheight=0.06, relwidth=0.4)
-        option.place(relx=0.6, rely=0.4, relheight=0.07, relwidth=0.3)
-        option["menu"].configure(bg=color_bg, activebackground=color_active, font=40)
+        self.option.place(relx=0.6, rely=0.4, relheight=0.07, relwidth=0.3)
+        self.option["menu"].configure(bg=color_bg, activebackground=color_active, font=40)
         self.prepare()
         for i in range(len(self.matrix)):
             for j in range(len(self.matrix[i])):
                 pair = i, j
                 self.matrix[i][j].thing.configure(command=lambda pair=pair: self.advance(pair))
-        randomize_button = tk.Button(self, text="Randomize placements", font=40, command=self.delegate_ships,
+        self.randomize_button = tk.Button(self, text="Randomize placements", font=40, command=self.delegate_ships,
+                                          bg=color_bg, activebackground=color_active)
+        self.randomize_button.place(relx=0.625, rely=0.57, relheight=0.08, relwidth=0.25)
+        self.back_button = tk.Button(self, text="Back", font=40,
+                                     command=lambda: self.controller.show_frame("MainMenu"),
                                      bg=color_bg, activebackground=color_active)
-        randomize_button.place(relx=0.625, rely=0.57, relheight=0.08, relwidth=0.25)
-        back_button = tk.Button(self, text="Back", font=40,
-                                command=lambda: self.controller.show_frame("MainMenu"),
-                                bg=color_bg, activebackground=color_active)
-        back_button.place(relx=0.03, rely=0.03, relheight=0.05, relwidth=0.1)
+        self.back_button.place(relx=0.03, rely=0.03, relheight=0.05, relwidth=0.1)
 
     def advance(self, pair):
         if len(self.remaining) == 0:
@@ -377,6 +385,20 @@ class ShipPage(tk.Frame):
         else:
             first = random.choice((PLAYER, COMPUTER))
         self.gui.game = Game(ai, board_player, board_ai, first)
+        for i in range(Settings().height()):
+            for j in range(Settings().width()):
+                self.matrix[i][j].thing.place_forget()
+                self.matrix[i][j].thing.destroy()
+        self.option.place_forget()
+        self.option.destroy()
+        self.label.place_forget()
+        self.label.destroy()
+        self.label_len.place_forget()
+        self.label_len.destroy()
+        self.randomize_button.place_forget()
+        self.randomize_button.destroy()
+        self.back_button.place_forget()
+        self.back_button.destroy()
         frame = PlayGame(parent=self.parent, controller=self.controller, gui=self.gui)
         self.controller.frames["PlayGame"] = frame
         frame.grid(row=0, column=0, sticky="nsew")
