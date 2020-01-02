@@ -1,6 +1,5 @@
 from save import *
 from constants import *
-from settings import Settings
 import os
 
 

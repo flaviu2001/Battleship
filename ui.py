@@ -1,4 +1,4 @@
-from os import system
+import os
 from domain import *
 from game import Game
 from save import Save
@@ -15,7 +15,7 @@ class UI:
         self._game.reset_recent()
 
     def _show_boards(self):
-        system("clear")
+        os.system('cls' if os.name == 'nt' else 'clear')
         self._print_recent_moves()
         print("{0} cells left for the player".format(self._game.board_ai.remaining_cells))
         print("{0} cells left for the computer".format(self._game.board_player.remaining_cells))
@@ -23,7 +23,7 @@ class UI:
                                                                                  self._game.board_ai))
 
     def _show_boards_finished(self):
-        system("clear")
+        os.system('cls' if os.name == 'nt' else 'clear')
         print("PLAYER BOARD\n{0}\n\nCOMPUTER BOARD - You guess here\n{1}".format(self._game.board_player.unhidden(),
                                                                                  self._game.board_ai.unhidden()))
         self._print_recent_moves()
