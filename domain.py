@@ -157,9 +157,9 @@ class Board:
                         from collections import deque
                         queue = deque()
                         visited = set()
-                        for cell in ship2:
-                            queue.append((cell, 0))
-                            visited.add(cell)
+                        for cell3 in ship2:
+                            queue.append((cell3, 0))
+                            visited.add(cell3)
                         while len(queue) > 0:
                             x = queue.popleft()
                             if x[0] in occupied_cells:
@@ -167,10 +167,10 @@ class Board:
                             dx = [1, -1, 0, 0]
                             dy = [0, 0, 1, -1]
                             for d in range(4):
-                                cell = (x[0][0]+dx[d], x[0][1]+dy[d])
-                                if cell not in visited and cell[0] in range(height) and cell[1] in range(width):
-                                    visited.add(cell)
-                                    queue.append((cell, x[1]+1))
+                                cell3 = (x[0][0]+dx[d], x[0][1]+dy[d])
+                                if cell3 not in visited and cell3[0] in range(height) and cell3[1] in range(width):
+                                    visited.add(cell3)
+                                    queue.append((cell3, x[1]+1))
                         return 0
                     mx = 0
                     for s in possible:
@@ -182,7 +182,9 @@ class Board:
                                 occupied_cells.append(cell2)
                             break
                 else:
-                    ships.append(Board.one_ship(occupied_cells, height, width, ship_len))
+                    ships.append(ship := Board.one_ship(occupied_cells, height, width, ship_len))
+                    for cell in ship:
+                        occupied_cells.append(cell)
         return ships
 
     def finished(self):
