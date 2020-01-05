@@ -8,6 +8,9 @@ class Save:
         self.save_path = save_path
 
     def load(self):
+        """
+        :return: The Game in the save if it exists, else None
+        """
         try:
             file = open(self.save_path, "rb")
             ret = pickle.load(file)
@@ -17,6 +20,10 @@ class Save:
             return None
 
     def save(self):
+        """
+        Writes a Game object to save file
+        :return:
+        """
         file = open(self.save_path, "wb")
         pickle.dump(self.game, file)
         file.close()

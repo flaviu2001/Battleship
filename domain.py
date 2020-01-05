@@ -105,7 +105,36 @@ class Board:
         return text_table.draw()
 
     @staticmethod
-    def random_ships():
+    def one_ship(occupied_cells, height, width, ship_len):
+        cnt = 0
+        while True:
+            cnt += 1
+            if randrange(2) == 0:
+                starting_x = randrange(height)
+                starting_y = randrange(width - ship_len + 1)
+                ending_x = starting_x
+                ending_y = starting_y + ship_len - 1
+            else:
+                starting_x = randrange(height - ship_len + 1)
+                starting_y = randrange(width)
+                ending_x = starting_x + ship_len - 1
+                ending_y = starting_y
+            good = True
+            for i in range(starting_x, ending_x + 1):
+                if not good:
+                    break
+                for j in range(starting_y, ending_y + 1):
+                    if (i, j) in occupied_cells:
+                        good = False
+                        break
+            if not good:
+                if cnt >= 100:
+                    raise BoardError("Board too small")
+                continue
+            return Ship((starting_x, starting_y), (ending_x, ending_y))
+
+    @staticmethod
+    def random_ships(good_random=True):
         """
         :return: A list of randomly placed ships as specified by the settings.ini file
         """
@@ -119,36 +148,41 @@ class Board:
                 raise BoardError("Board too small")
             while frequency > 0:
                 frequency -= 1
-                cnt = 0
-                while True:
-                    cnt += 1
-                    if randrange(2) == 0:
-                        starting_x = randrange(height)
-                        starting_y = randrange(width - ship_len + 1)
-                        ending_x = starting_x
-                        ending_y = starting_y + ship_len - 1
-                    else:
-                        starting_x = randrange(height - ship_len + 1)
-                        starting_y = randrange(width)
-                        ending_x = starting_x + ship_len - 1
-                        ending_y = starting_y
-                    good = True
-                    for i in range(starting_x, ending_x + 1):
-                        if not good:
+                possible = []
+                if good_random:
+                    for _ in range(3):
+                        possible.append(Board.one_ship(occupied_cells, height, width, ship_len))
+
+                    def min_dist(ship2):  # a slightly more efficient lee algorithm
+                        from collections import deque
+                        queue = deque()
+                        visited = set()
+                        for cell in ship2:
+                            queue.append((cell, 0))
+                            visited.add(cell)
+                        while len(queue) > 0:
+                            x = queue.popleft()
+                            if x[0] in occupied_cells:
+                                return x[1]
+                            dx = [1, -1, 0, 0]
+                            dy = [0, 0, 1, -1]
+                            for d in range(4):
+                                cell = (x[0][0]+dx[d], x[0][1]+dy[d])
+                                if cell not in visited and cell[0] in range(height) and cell[1] in range(width):
+                                    visited.add(cell)
+                                    queue.append((cell, x[1]+1))
+                        return 0
+                    mx = 0
+                    for s in possible:
+                        mx = max(mx, min_dist(s))
+                    for s in possible:
+                        if min_dist(s) == mx:
+                            ships.append(s)
+                            for cell2 in s:
+                                occupied_cells.append(cell2)
                             break
-                        for j in range(starting_y, ending_y + 1):
-                            if (i, j) in occupied_cells:
-                                good = False
-                                break
-                    if not good:
-                        if cnt >= 100:
-                            raise BoardError("Board too small")
-                        continue
-                    for i in range(starting_x, ending_x + 1):
-                        for j in range(starting_y, ending_y + 1):
-                            occupied_cells.append((i, j))
-                    ships.append(Ship((starting_x, starting_y), (ending_x, ending_y)))
-                    break
+                else:
+                    ships.append(Board.one_ship(occupied_cells, height, width, ship_len))
         return ships
 
     def finished(self):
