@@ -2,7 +2,7 @@ from save import Save
 from domain import *
 import tkinter as tk
 from PIL import ImageTk, Image
-from tkinter import font as tkfont
+import tkinter.font as tkfont
 from ai import *
 from game import Game
 from settings import Settings
