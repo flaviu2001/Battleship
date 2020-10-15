@@ -2,4 +2,6 @@
 Battleship game, now on python!
 Play in the console or use the gui (based on tkinter) following intuitive rules, take advantage of autosave and beat the ai on the hardest difficulty!
 
-![2020-10-15 20-11-35](https://user-images.githubusercontent.com/56861796/96164090-681dfd80-0f23-11eb-8d0b-d415919df57d.gif)
+![Screenshot from 2020-10-15 20-39-35](https://user-images.githubusercontent.com/56861796/96166510-bd0f4300-0f26-11eb-9ddf-2ca1bf679536.png)
+![Screenshot from 2020-10-15 20-39-50](https://user-images.githubusercontent.com/56861796/96166516-bed90680-0f26-11eb-88f3-41945154e804.png)
+![Screenshot from 2020-10-15 20-40-20](https://user-images.githubusercontent.com/56861796/96166519-bf719d00-0f26-11eb-94dd-51942a189b5d.png)
